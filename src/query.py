@@ -6,7 +6,7 @@ def query(username):
     headers = {}
     url = 'https://api.github.com/users/' + username+ '/repos'
     r = requests.get(url, headers=headers)
-    print(json.dumps(json.loads(r.text), indent= 2))
-    
+    return r
 
-query("bendunnegyms")
+if __name__ == "__main__":
+    print(json.dumps(json.loads(query("bendunnegyms").text), indent= 2))
