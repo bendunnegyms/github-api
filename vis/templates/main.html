@@ -9,6 +9,13 @@
     <style>
         .node_label{
             font-family: 'Mukta', serif;
+            font-size: 11px;
+            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-user-select: none; /* Safari */
+            -khtml-user-select: none; /* Konqueror HTML */
+            -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none;
         }
         circle{
             transition: transform 1s;
@@ -50,13 +57,27 @@
                     .attr("transform",
                         "translate(" + margin.left + "," + margin.top + ")");
                 
-                
-                d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/data_network.json", function(data) {
+                svg.append("defs").selectAll("marker")
+                    .data(["end"])
+                    .enter().append("svg:marker")    // This section adds in the arrows
+                    .attr("id", d => `arrow-${d}`)
+                    .attr("viewBox", "0 -5 10 10")
+                    .attr("refX", 15)
+                    .attr("refY", -0.5)
+                    .attr("markerWidth", 6)
+                    .attr("markerHeight", 6)
+                    .attr("orient", "auto")
+                    .append("path")
+                    .attr("fill", "#ffffff")
+                    .attr("d", "M0,-5L10,0L0,5");
+
+                    
+                d3.json("/data/network_graph.json", function(data) {
                     
                     // Let's list the force we wanna apply on the network
                 var simulation = d3.forceSimulation()
                         .force("link", d3.forceLink().id(function(d) { return d.id; }))
-                        .force("charge", d3.forceManyBody().strength(-200))
+                        .force("charge", d3.forceManyBody())
                         .force("center", d3.forceCenter(width / 2, height / 2));
                 
                     
@@ -67,7 +88,7 @@
                         .enter()
                         .append("line")
                         .style("stroke", "#aaa")
-                        .style("stroke-width", 6)
+                        .style("stroke-width", 3)
 
                     var node = svg.append("g")
                         .attr("class", "nodes")
@@ -78,16 +99,16 @@
                     var circles = node.append("circle")
                         .attr("stroke", "#fff")
                         .attr("stroke-width", 1.5)
-                        .attr("r", 15)
+                        .attr("r", 8)
                         .style("fill", "#1f77b4")
                         .call(drag(simulation));
 
                     node.append("title")
-                        .text(function(d) { return d.id; });        
+                        .text(function(d) { return d.metadata; });        
                     
                     var lables = node.append("text")
                         .text(function(d) {
-                            return d.name;
+                            return d.date;
                         })
                         .attr('x', 18)
                         .attr('y', 3)
