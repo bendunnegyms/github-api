@@ -1,5 +1,5 @@
 import os.path
-from flask import Flask, render_template, send_from_directory, send_file
+from flask import Flask, render_template, send_from_directory, request
 import src.query as query
 
 app = Flask(__name__)
@@ -17,3 +17,12 @@ def data(filename):
         return send_from_directory(assets_folder, filename)
     except FileNotFoundError:
         abort(404)
+
+@app.route('/func/', methods=['POST'])
+def my_form_post():
+    print(request.get_json())
+    user_query = request.get_json()['name_and_repo']
+    query.loads_data(user_query)
+
+    return ('', 204)
+    

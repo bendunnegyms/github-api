@@ -25,175 +25,197 @@
 
 
 
+<body>
+    <section class="repo_query">
+        <input type="text" name="name_and_repo" id="usrin">
+        <button onclick="renderDAG(document.getElementById('usrin').value)")>Submit</button>
+    </section>
+    <section class="data display" style="padding-top: 20px; padding-bottom: 20px">
+        <div class="container">
+            <div class="row">
 
-<section class="bg" style="padding-top: 20px; padding-bottom: 20px">
-    <div class="container">
-        <div class="row">
-
-        </div>
-
-
-        <!-- Load d3.js -->
-        <script src="https://d3js.org/d3.v4.js"></script>
-
-        <div id="git_commits_dag"></div>
-        <script>
-
-            var margin = { top: 10, right: 30, bottom: 30, left: 40 },
-                width = 900 - margin.left - margin.right,
-                height = 600 - margin.top - margin.bottom;
+            </div>
 
 
+            <!-- Load d3.js -->
+            <script src="https://d3js.org/d3.v4.js"></script>
 
-            d3.json("/data/network_graph.json", function (data) {
-                console.log(data)
-                var svg = d3.select("#git_commits_dag")
-                    .append("svg")
-                    .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
-                    .append("g")
-                    .attr("transform",
-                        "translate(" + margin.left + "," + margin.top + ")");
+            <div id="git_commits_dag"></div>
+            <script>
 
-                var zoomRect = svg.append('rect')
-                    .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
-                    .attr("fill", "white");
+                function renderDAG(dataToRender) {
+                    
+                    var user_input = document.getElementById("usrin");
+                    var entry = {"name_and_repo": user_input.value};
 
-                var nodes_data = data.nodes;
-                var links_data = data.links;
-                console.log(nodes_data);
-                console.log(links_data);
-
-                var simulation = d3.forceSimulation()
-                    .nodes(nodes_data);
-
-                var link_force = d3.forceLink(links_data)
-                    .id(function (d) { return d.id; });
-
-                var charge_force = d3.forceManyBody()
-                    .strength(-25);
-
-                var center_force = d3.forceCenter(width / 2, height / 2);
-
-                simulation
-                    .force("charge_force", charge_force)
-                    .force("center_force", center_force)
-                    .force("links", link_force)
-                    ;
+                    fetch("/func/", {
+                        method: 'POST',
+                        headers: new Headers({
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }),
+                        body: JSON.stringify(entry)
+                    }).then(function(response) {
+                        console.log(response);
+                        var margin = { top: 10, right: 30, bottom: 30, left: 40 },
+                            width = 900 - margin.left - margin.right,
+                            height = 600 - margin.top - margin.bottom;
 
 
-                //add tick instructions: 
-                simulation.on("tick", tickActions);
+                        var time = Date.now();
+                        var json_file = "/data/network_graph.json?u=" + time;
+                        d3.json(json_file, function (data) {
+                            console.log(data)
+                            var svg = d3.select("#git_commits_dag")
+                                .append("svg")
+                                .attr("width", width + margin.left + margin.right)
+                                .attr("height", height + margin.top + margin.bottom)
+                                .append("g")
+                                .attr("transform",
+                                    "translate(" + margin.left + "," + margin.top + ")");
 
-                //add encompassing group for the zoom 
-                var g = svg.append("g")
-                    .attr("class", "everything");
+                            var zoomRect = svg.append('rect')
+                                .attr("width", width + margin.left + margin.right)
+                                .attr("height", height + margin.top + margin.bottom)
+                                .attr("fill", "white");
 
-                //draw lines for the links 
-                var link = g.append("g")
-                    .attr("class", "links")
-                    .selectAll("line")
-                    .data(links_data)
-                    .enter().append("line")
-                    .attr("stroke-width", 2)
-                    .style("stroke", "#aaa");
+                            var nodes_data = data.nodes;
+                            var links_data = data.links;
 
-                var node = g.append("g")
-                    .attr("class", "nodes")
-                    .selectAll("g")
-                    .data(nodes_data)
-                    .enter()
-                    .append("g");
+                            var simulation = d3.forceSimulation()
+                                .nodes(nodes_data);
 
-                var circle = node.append("circle")
-                    .attr("stroke", "#fff")
-                    .attr("stroke-width", 1.5)
-                    .attr("r", 8)
-                    .style("fill", "#1f77b4");
+                            var link_force = d3.forceLink(links_data)
+                                .id(function (d) { return d.id; });
 
+                            var charge_force = d3.forceManyBody()
+                                .strength(-25);
 
-                var labels = node.append("text")
-                    .text(function (d) {
-                        return d.date;
-                    })
-                    .attr('x', 18)
-                    .attr('y', 3)
-                    .attr("class", "node_label");
+                            var center_force = d3.forceCenter(width / 2, height / 2);
 
-                node.append("title")
-                    .text(function (d) { return d.metadata; });
+                            simulation
+                                .force("charge_force", charge_force)
+                                .force("center_force", center_force)
+                                .force("links", link_force)
+                                ;
 
 
+                            //add tick instructions: 
+                            simulation.on("tick", tickActions);
 
-                var drag_handler = d3.drag()
-                    .on("start", drag_start)
-                    .on("drag", drag_drag)
-                    .on("end", drag_end);
+                            //add encompassing group for the zoom 
+                            var g = svg.append("g")
+                                .attr("class", "everything");
 
-                drag_handler(node);
-                //Zoom functions 
-                function zoom_actions() {
-                    g.attr("transform", d3.event.transform)
+                            //draw lines for the links 
+                            var link = g.append("g")
+                                .attr("class", "links")
+                                .selectAll("line")
+                                .data(links_data)
+                                .enter().append("line")
+                                .attr("stroke-width", 2)
+                                .style("stroke", "#aaa");
+
+                            var node = g.append("g")
+                                .attr("class", "nodes")
+                                .selectAll("g")
+                                .data(nodes_data)
+                                .enter()
+                                .append("g");
+
+                            var circle = node.append("circle")
+                                .attr("stroke", "#fff")
+                                .attr("stroke-width", 1.5)
+                                .attr("r", 8)
+                                .style("fill", "#1f77b4");
+
+
+                            var labels = node.append("text")
+                                .text(function (d) {
+                                    return d.date;
+                                })
+                                .attr('x', 18)
+                                .attr('y', 3)
+                                .attr("class", "node_label");
+
+                            node.append("title")
+                                .text(function (d) { return d.metadata; });
+
+
+
+                            var drag_handler = d3.drag()
+                                .on("start", drag_start)
+                                .on("drag", drag_drag)
+                                .on("end", drag_end);
+
+                            drag_handler(node);
+                            //Zoom functions 
+                            function zoom_actions() {
+                                g.attr("transform", d3.event.transform)
+                            }
+
+                            //add zoom capabilities 
+                            var zoom_handler = d3.zoom()
+                                .scaleExtent([1, 2])
+                                .on("zoom", zoom_actions);
+
+                            zoom_handler(zoomRect);
+
+                            /** Functions **/
+
+
+                            //Drag functions 
+                            //d is the node 
+                            function drag_start(d) {
+                                if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+                                d.fx = d.x;
+                                d.fy = d.y;
+                            }
+
+                            //make sure you can't drag the circle outside the box
+                            function drag_drag(d) {
+                                d.fx = d3.event.x;
+                                d.fy = d3.event.y;
+                            }
+
+                            function drag_end(d) {
+                                if (!d3.event.active) simulation.alphaTarget(0);
+                                d.fx = null;
+                                d.fy = null;
+                            }
+
+
+
+                            function tickActions() {
+                                //update circle positions each tick of the simulation 
+                                node
+                                    .attr("x", function (d) { return d.x; })
+                                    .attr("y", function (d) { return d.y; });
+
+                                circle
+                                    .attr("cx", function (d) { return d.x; })
+                                    .attr("cy", function (d) { return d.y; });
+
+                                labels
+                                    .attr("x", function (d) { return d.x + 10; })
+                                    .attr("y", function (d) { return d.y - 5; });
+
+                                //update link positions 
+                                link
+                                    .attr("x1", function (d) { return d.source.x; })
+                                    .attr("y1", function (d) { return d.source.y; })
+                                    .attr("x2", function (d) { return d.target.x; })
+                                    .attr("y2", function (d) { return d.target.y; });
+                            }
+                        });
+                    });
+
+                    function renderBarChart() {
+
+                    }
                 }
-
-                //add zoom capabilities 
-                var zoom_handler = d3.zoom()
-                    .on("zoom", zoom_actions);
-
-                zoom_handler(zoomRect);
-
-                /** Functions **/
-
-
-                //Drag functions 
-                //d is the node 
-                function drag_start(d) {
-                    if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-                    d.fx = d.x;
-                    d.fy = d.y;
-                }
-
-                //make sure you can't drag the circle outside the box
-                function drag_drag(d) {
-                    d.fx = d3.event.x;
-                    d.fy = d3.event.y;
-                }
-
-                function drag_end(d) {
-                    if (!d3.event.active) simulation.alphaTarget(0);
-                    d.fx = null;
-                    d.fy = null;
-                }
-
-
-
-                function tickActions() {
-                    //update circle positions each tick of the simulation 
-                    node
-                        .attr("x", function (d) { return d.x; })
-                        .attr("y", function (d) { return d.y; });
-
-                    circle
-                        .attr("cx", function (d) { return d.x; })
-                        .attr("cy", function (d) { return d.y; });
-
-                    labels
-                        .attr("x", function (d) { return d.x + 10; })
-                        .attr("y", function (d) { return d.y - 5; });
-
-                    //update link positions 
-                    link
-                        .attr("x1", function (d) { return d.source.x; })
-                        .attr("y1", function (d) { return d.source.y; })
-                        .attr("x2", function (d) { return d.target.x; })
-                        .attr("y2", function (d) { return d.target.y; });
-                }
-            });
-
-
-        </script>
-
-        </body>
+            </script>
+    </section>
+</body>
 
 </html>

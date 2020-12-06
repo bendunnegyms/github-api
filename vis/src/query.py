@@ -6,10 +6,10 @@ def query(username):
     headers = {}
     url = 'https://api.github.com/users/' + username+ '/repos'
     r = requests.get(url, headers=headers)
+    #print(r.text)
     return r
 
 def get_repo_by_name(name, r):
-    print(r)
     repo_data = {}
     for entry in r:
         if entry.get("name") == name:
@@ -72,18 +72,23 @@ def dagify_commits(r):
         
     network_graph["nodes"] = nodes
     network_graph["links"] = links
-    # print(json.dumps(network_graph, indent= 2))
+    print(json.dumps(network_graph, indent= 2))
     with open("../vis/data/network_graph.json", "w") as fp:
         json.dump(network_graph, fp)
 
-def dag_data():
-    r = json.loads(query("bendunnegyms").text)
-    repo_data = get_repo_by_name("SWENG-2", r)
+def loads_data(username_repo):
+    git_user = username_repo.split("/")[0]
+    git_repo = username_repo.split("/")[1]
+    print(git_repo, " ", git_user)
+    r = json.loads(query(git_user).text)
+    repo_data = get_repo_by_name(git_repo, r)
     dagify_commits(get_repo_commits(repo_data))
 
+    # add more stuff here for bar chart data 
 
-if __name__ == "__main__":
-    r = json.loads(query("bendunnegyms").text)
-    repo_data = get_repo_by_name("SWENG-2", r)
+
+# if __name__ == "__main__":
+    # r = json.loads(query("bendunnegyms").text)
+    # repo_data = get_repo_by_name("SWENG-2", r)
     #print(json.dumps(repo_data, indent= 2))
-    dagify_commits(get_repo_commits(repo_data))
+    # dagify_commits(get_repo_commits(repo_data))
