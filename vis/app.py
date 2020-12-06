@@ -12,7 +12,7 @@ def index():
 
 @app.route("/data/<path:filename>/")
 def data(filename):
-    query.dag_data()
+    # query.dag_data()
     try:
         return send_from_directory(assets_folder, filename)
     except FileNotFoundError:

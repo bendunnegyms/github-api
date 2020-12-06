@@ -9,7 +9,7 @@ def query(username):
     return r
 
 def get_repo_by_name(name, r):
-
+    print(r)
     repo_data = {}
     for entry in r:
         if entry.get("name") == name:
