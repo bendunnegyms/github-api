@@ -10,23 +10,16 @@
             font-family: 'Mukta', serif;
             font-size: 11px;
             -webkit-touch-callout: none;
-            /* iOS Safari */
             -webkit-user-select: none;
-            /* Safari */
             -khtml-user-select: none;
-            /* Konqueror HTML */
             -moz-user-select: none;
-            /* Old versions of Firefox */
             -ms-user-select: none;
-            /* Internet Explorer/Edge */
             user-select: none;
         }
 
         circle {
             cursor: pointer;
         }
-
-
     </style>
 </head>
 
@@ -62,6 +55,10 @@
                     .attr("transform",
                         "translate(" + margin.left + "," + margin.top + ")");
 
+                var zoomRect = svg.append('rect')
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .attr("fill", "white");
 
                 var nodes_data = data.nodes;
                 var links_data = data.links;
@@ -104,26 +101,26 @@
 
                 var node = g.append("g")
                     .attr("class", "nodes")
-                    .selectAll("circle")
+                    .selectAll("g")
                     .data(nodes_data)
                     .enter()
-                    .append("circle");
+                    .append("g");
 
-                var circle = node
+                var circle = node.append("circle")
                     .attr("stroke", "#fff")
                     .attr("stroke-width", 1.5)
                     .attr("r", 8)
                     .style("fill", "#1f77b4");
 
 
-                var lables = node.append("text")
+                var labels = node.append("text")
                     .text(function (d) {
                         return d.date;
                     })
                     .attr('x', 18)
                     .attr('y', 3)
                     .attr("class", "node_label");
-                    
+
                 node.append("title")
                     .text(function (d) { return d.metadata; });
 
@@ -144,7 +141,7 @@
                 var zoom_handler = d3.zoom()
                     .on("zoom", zoom_actions);
 
-                zoom_handler(svg);
+                zoom_handler(zoomRect);
 
                 /** Functions **/
 
@@ -174,8 +171,16 @@
                 function tickActions() {
                     //update circle positions each tick of the simulation 
                     node
+                        .attr("x", function (d) { return d.x; })
+                        .attr("y", function (d) { return d.y; });
+
+                    circle
                         .attr("cx", function (d) { return d.x; })
                         .attr("cy", function (d) { return d.y; });
+
+                    labels
+                        .attr("x", function (d) { return d.x + 10; })
+                        .attr("y", function (d) { return d.y - 5; });
 
                     //update link positions 
                     link
