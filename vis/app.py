@@ -20,7 +20,6 @@ def data(filename):
 
 @app.route('/func/', methods=['POST'])
 def my_form_post():
-    print(request.get_json())
     user_query = request.get_json()['name_and_repo']
     query.loads_data(user_query)
 
