@@ -3,8 +3,8 @@ from flask import Flask, render_template, send_from_directory, request
 import src.query as query
 
 app = Flask(__name__)
-assets_folder = os.path.join(app.root_path, 'data')
-print(assets_folder)
+data_folder = os.path.join(app.root_path, 'data')
+
 
 @app.route("/")
 def index():
@@ -14,9 +14,10 @@ def index():
 def data(filename):
     # query.dag_data()
     try:
-        return send_from_directory(assets_folder, filename)
+        return send_from_directory(data_folder, filename)
     except FileNotFoundError:
         abort(404)
+
 
 @app.route('/func/', methods=['POST'])
 def my_form_post():

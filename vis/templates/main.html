@@ -2,6 +2,9 @@
 <html lang="en">
 
 <head>
+    <!-- Load d3.js -->
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mukta">
     <meta charset="utf-8">
     <title>Basic network graph in d3.js</title>
@@ -47,17 +50,18 @@
             display: none;
         }
 
-        .y_axis .tick text{
+        .y_axis .tick text {
             font-family: 'Mukta', serif;
             font-size: 15px;
         }
+
         .network_graph {
             background-color: #fffff5;
             width: 100%;
         }
 
         .zoom_rect {
-            width :100%;
+            width: 100%;
         }
 
         .repo_query {
@@ -68,16 +72,18 @@
             border-bottom: 1px solid black;
             margin: auto;
         }
-        .dag{
-            width :80%;
+
+        .dag {
+            width: 80%;
             margin-left: 10%;
             margin-right: 10%;
         }
-        
-        .commit_count{
-            width : 50%;
+
+        .commit_count {
+            width: 50%;
             margin-left: 10%;
         }
+
         .submit_form {
             padding-left: 33%;
             width: 33%;
@@ -92,11 +98,15 @@
             font-size: 18px;
         }
 
+        button {
+            height: 100%;
+            font-family: 'Mukta', serif;
+            font-size: 14px;
+        }
+
         .bar_chart {
             padding-left: 30px;
         }
-
-        
     </style>
 </head>
 
@@ -119,12 +129,10 @@
             </div>
 
 
-            <!-- Load d3.js -->
-            <script src="https://d3js.org/d3.v4.js"></script>
 
             <div class="dag" id="git_commits_dag"></div>
-            <div class= "commit_count" id="git_commits_bar_chart"></div>
-
+            <div class="commit_count" id="git_commits_bar_chart"></div>
+            <div class="pie_chart" id="pie_chart"></div>
             <script>
                 function renderData() {
                     var user_input = document.getElementById("usrin");
@@ -143,7 +151,7 @@
                     });
                 }
 
-                function addMetadataBox(){
+                function addMetadataBox() {
 
                 }
 
@@ -159,11 +167,18 @@
                     var json_file = "/data/network_graph.json?u=" + time;
                     d3.json(json_file, function (data) {
                         console.log(data)
+
+                        var commit_count = "Commits: " + data.nodes.length
+
                         var svg = d3.select("#git_commits_dag")
                             .append("svg")
                             .attr("class", "network_graph")
                             .attr("height", height)
                             .append("g");
+
+                        var commit_count_header = svg.append("text")
+                            .attr("class", "commit_count_dag")
+                            .text(commit_count)
 
                         var zoomRect = svg.append('rect')
                             .attr("class", "zoom_rect")
@@ -246,7 +261,7 @@
 
                         //add zoom capabilities 
                         var zoom_handler = d3.zoom()
-                            .scaleExtent([0.5, 2])
+                            .scaleExtent([0.1, 2])
                             .on("zoom", zoom_actions);
 
                         zoom_handler(zoomRect);
@@ -357,6 +372,16 @@
                             .attr("fill", "#1f38b4")
 
 
+
+                    });
+                }
+
+                function pie_chart() {
+                    d3.select("#pie_chart").selectAll("*").remove();
+
+                    var time = Date.now();
+                    var json_file = "/data/langs.json?u=" + time;
+                    d3.json(json_file, function (data) {
 
                     });
                 }

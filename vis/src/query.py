@@ -1,12 +1,13 @@
 import requests
 import sys
 import json
+import os, io
 
 def query(username):
     headers = {}
     url = 'https://api.github.com/users/' + username+ '/repos'
-    r = requests.get(url, headers=headers,  auth=('bendunnegyms', '4955eb9b37f8c6518c243cb6e204938860b78963'))
-    # print(json.dumps(json.loads(r.text), indent= 4))
+    r = requests.get(url, headers=headers,  auth=('bendunnegyms', ''))
+    print(json.dumps(json.loads(r.text), indent= 4))
     return r
 
 def get_repo_by_name(name, r):
@@ -20,15 +21,15 @@ def get_repo_by_name(name, r):
 
 def get_repo_commits(r):
     commits_url = r.get("commits_url")
-    # print(commits_url)
+    print(commits_url)
     if commits_url.endswith('{/sha}'):
         commits_url = commits_url[:-6]
     commits_url += "?page="
     commits_r_t = []
     for x in range(5):
         commits_url_t = "{url}{index}".format(url=commits_url,index=x+1)
-        print(commits_url_t)
-        commits_r = requests.get(commits_url_t, headers={}, auth=('bendunnegyms', '4955eb9b37f8c6518c243cb6e204938860b78963'))
+        # print(commits_url_t)
+        commits_r = requests.get(commits_url_t, headers={}, auth=('bendunnegyms', ''))
         # print(json.dumps(json.loads(commits_r.text), indent= 4))
         if len(json.loads(commits_r.text)) == 0:
             break
@@ -108,7 +109,35 @@ def bar_chart_data(r):
         json.dump(bar_chart_graph, fp)
 
          
+def language_data(username, repo):
+    headers = {}
+    url = 'https://api.github.com/repos/' + username + '/' + repo + '/languages'
+    r = requests.get(url, headers=headers,  auth=('bendunnegyms', ''))
+    #    print(json.dumps(json.loads(r.text), indent= 4))
 
+    lang_dict = json.loads(r.text)
+    total_loc = 0
+    for key in lang_dict:
+        total_loc += lang_dict[key]
+
+    langs_by_percentage = {}
+    for key in lang_dict:
+        loc = lang_dict[key]
+        perc = round((loc/total_loc)*100, 2)
+        langs_by_percentage[key] = perc
+    
+    print(langs_by_percentage)
+    print(os.path.exists("../vis/data"))
+    print(os.path.dirname(__file__))
+    file_exist_check(langs_by_percentage, "../vis/data/langs.json")
+        
+def file_exist_check(dict_t, pathname):
+    try:
+        with open(pathname, "w") as fp:
+            json.dump(dict_t, fp)
+    except:
+        with open(pathname, "x") as fp:
+            json.dump(dict_t, fp)
 
 def loads_data(username_repo):
     
@@ -126,11 +155,13 @@ def loads_data(username_repo):
 def rate_limit_test():
     headers = {}
     url = 'https://api.github.com/rate_limit'
-    r = requests.get(url, headers=headers, auth=('bendunnegyms', '4955eb9b37f8c6518c243cb6e204938860b78963'))
+    r = requests.get(url, headers=headers, auth=('bendunnegyms', ''))
     print(r.text)
+
 
 if __name__ == "__main__":
     rate_limit_test()
+    language_data("bendunnegyms", "SWENG-2")
     # r = json.loads(query("bendunnegyms").text)
     # repo_data = get_repo_by_name("SWENG-2", r)
     #print(json.dumps(repo_data, indent= 2))
