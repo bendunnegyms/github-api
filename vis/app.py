@@ -18,11 +18,14 @@ def data(filename):
     except FileNotFoundError:
         abort(404)
 
-
 @app.route('/func/', methods=['POST'])
 def my_form_post():
-    user_query = request.get_json()['name_and_repo']
-    query.loads_data(user_query)
+
+    if (query.rate_limit_test()) < 0:
+        print("Rate limited")
+        return("", 403)
+
+    query.loads_data(request.get_json())
 
     return ('', 204)
     
