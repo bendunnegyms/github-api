@@ -19,7 +19,7 @@ def data(filename):
         abort(404)
 
 @app.route('/func/', methods=['POST'])
-def my_form_post():
+def form_post():
 
     if (query.rate_limit_test()) < 0:
         print("Rate limited")

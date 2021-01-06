@@ -22,7 +22,7 @@ def get_repo_by_name(name, r):
         if entry.get("name") == name:
             repo_data = entry
             break
-    # print(json.dumps(repo_data, indent= 2))
+    print(json.dumps(repo_data, indent= 2))
     return repo_data
 
 
@@ -33,7 +33,7 @@ def get_repo_commits(r):
         commits_url = commits_url[:-6]
     commits_url += "?page="
     commits_r_t = []
-    for x in range(2):
+    for x in range(3):
         commits_url_t = "{url}{index}".format(url=commits_url, index=x+1)
         # print(commits_url_t)
         commits_r = requests.get(commits_url_t, headers={}, auth=(
@@ -166,11 +166,32 @@ def file_exist_check(dict_t, pathname):
             json.dump(dict_t, fp)
 
 def get_user_activity(username):
+    activity_for_some_time = []
     headers = {}
-    url = 'https://api.github.com/users/' + username + "/events"
-    r = requests.get(url, headers=headers, auth=(
-        'bendunnegyms', ''))
-    print(json.dumps(json.loads(r.text), indent=2))
+    url = 'https://api.github.com/users/' + username + "/events?page="
+    dummy_url = ''
+    for x in range(5):
+        dummy_url = "{url}{index}".format(url=url, index=x+1)
+        r = requests.get(dummy_url, headers=headers, auth=('bendunnegyms', ''))
+        if len(json.loads(r.text)) == 0:
+            break
+        for entry in json.loads(r.text):
+            activity_for_some_time.append(entry)
+
+    # print(json.dumps(activity_for_some_time, indent=2))
+    dict_events = {}
+    for entry in activity_for_some_time:
+        date = entry["created_at"]
+        date_d = (date.split("T"))[0]
+        if date_d not in dict_events:
+            dict_events[date_d] = 1
+        else:
+            dict_events[date_d] += 1
+    dict_as_list = []
+    for entry in dict_events:
+        dict_as_list.append({"date":entry, "commits" : dict_events[entry]})
+    file_exist_check(dict_as_list, "../vis/data/user_events.json")
+    
 
 
 def get_user_avatar(username):
@@ -194,6 +215,33 @@ def get_user_avatar(username):
     else:
         print('Image Couldn\'t be retreived')
 
+def get_user_data(username):
+    user_data = {}
+    headers = {}
+    url = 'https://api.github.com/users/' + username
+    r_data = requests.get(url, headers=headers,  auth=(
+        'bendunnegyms', ''))
+    r_data = json.loads(r_data.text)
+    url = 'https://api.github.com/users/' + username + "/starred"
+    r_starred = json.loads((requests.get(url, headers=headers,  auth=(
+        'bendunnegyms', ''))).text)
+    
+    print(json.dumps(r_starred, indent=2))
+    user_data["username"] = username
+    user_data["followers"] = r_data["followers"]
+    user_data["following"] = r_data["following"]
+    user_data["url"] = r_data["html_url"]
+    starred_list = []
+    for entry in r_starred:
+        name = entry["name"]
+        url = entry["html_url"]
+        desc = entry["description"]
+        data_entry = {"name" : name, "url": url, "desc" : desc}
+        starred_list.append(data_entry)
+    user_data["starred"] = starred_list
+    file_exist_check(user_data, "../vis/data/user_data.json")
+    
+
 
 def loads_data(request_data):
 
@@ -215,6 +263,7 @@ def loads_data(request_data):
         git_user = request_data["name"]
         get_user_activity(git_user)
         get_user_avatar(git_user)
+        get_user_data(git_user)
         
 
 
@@ -240,11 +289,12 @@ def test_token(usr, token):
 
 if __name__ == "__main__":
     rate_limit_test()
+    # get_user_data("esjmb")
     # get_user_activity("bendunnegyms")
     # get_user_avatar("OwenB523")
     # language_data("bendunnegyms", "SWENG-2")
-    #r = json.loads(query("bendunnegyms").text)
-    #repo_data = get_repo_by_name("SWENG-2", r)
-    #repo_commits_data = get_repo_commits(repo_data)
+    # r = json.loads(query("bendunnegyms").text)
+    # repo_data = get_repo_by_name("SWENG-2", r)
+    # repo_commits_data = get_repo_commits(repo_data)
     # get_readme("bendunnegyms","SWENG-2")
     # dagify_commits(get_repo_commits(repo_data))

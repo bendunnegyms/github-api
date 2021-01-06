@@ -1,4 +1,7 @@
 function renderData() {
+    clearElements();
+    d3.select("#data_display").style("display", "none")
+    addLoading();
     var user_input = document.getElementById("usrin");
     user_input = user_input.value + "";
     input_test = user_input.split("/");
@@ -26,8 +29,7 @@ function renderData() {
         body: JSON.stringify(entry)
     }).then(function (response) {
         console.log(response.status);
-        
-        clearElements();
+        removeLoading();
         if (entry["status"] == "name_and_repo") {
             d3.select("#data_display").style("display", "block")
             renderDAG();
@@ -36,9 +38,18 @@ function renderData() {
             render_readme();
         } else {
             d3.select("#data_display").style("display", "none")
+            d3.select("body")
+                .append("section")
+                .attr("id", "user_data")
+                .attr("position", "absolute")
+                .style("margin", "auto")
+                .style("width", "1000px")
+                .style("height", "800px")
+                .attr("overflow", "auto")
+                .style("padding-top", "40px");
             renderUserData();
+            render_commits_line_graph();
         }
-
     });
 }
 
@@ -52,8 +63,24 @@ function clearElements() {
 }
 
 
+function removeLoading() {
+    d3.select("body").select("#loading_gif").remove();
+    d3.select("body").select("button")
+        .attr("disabled", null)
+}
+function addLoading() {
+    d3.select("body").select("button")
+        .attr("disabled", "disabled")
+    var gif = "/data/loading.gif?u=" + Date.now();
 
-function addMetadataBox() {
+    d3.select("body").append("div")
+        .style("margin-left", "35%")
+        .attr("id", "loading_gif")
+        .attr("class", "loading_gif")
+        .append("img")
+        .attr("width", "400px")
+        .attr("height", "400px")
+        .attr("src", gif)
 
 }
 
@@ -397,12 +424,7 @@ function pie_chart() {
             .innerRadius(radius * 0.9)
             .outerRadius(radius * 0.9)
 
-        var tooltip = d3.select('#pie_chart') // select element in the DOM with id 'chart'
-            .append('div') // append a div element to the element we've selected                                    
-            .attr('class', 'tooltip'); // add class 'tooltip' on the divs we just selected
 
-        tooltip.append('div') // add divs to the tooltip defined above                            
-            .attr('class', 'label'); // add class 'label' on the selection                         
 
         var defs = svg.append("defs");
         // black drop shadow
@@ -513,7 +535,6 @@ function render_readme() {
         if (rawFile.readyState === 4) {
             if (rawFile.status === 200 || rawFile.status == 0) {
                 var allText = rawFile.responseText;
-                console.log(allText);
                 document.getElementById("readme").innerHTML += allText;
 
             }
@@ -523,42 +544,357 @@ function render_readme() {
 
 }
 
+
+
+
+
+
+
+
 function renderUserData() {
-
-
-    var user_data = d3.select("body")
-        .append("section")
-        .attr("id", "user_data")
-        .style("margin-left", "20%")
-        .style("width", "40%")
-        .style("padding-top","20px");
-
     //    avi.src = "/data/avatar.jpg";
 
     var user_avi_svg = d3.select("#user_data")
         .append("svg")
+        .style("float", "left")
         .attr("id", "user_svg")
-        .attr("height", "500")
+        .attr("class", "user_svg")
+        .attr("height", "810")
+        .attr("width", "320")
         .style("padding-left", "5px");
-        
 
+    var defs = user_avi_svg.append("defs");
+    // black drop shadow
+    var filter = defs.append("filter")
+        .attr("id", "drop-shadow")
+    filter.append("feGaussianBlur")
+        .attr("in", "SourceAlpha")
+        .attr("stdDeviation", 1)
+        .attr("result", "blur");
+    filter.append("feOffset")
+        .attr("in", "blur")
+        .attr("dx", 0)
+        .attr("dy", 0)
+        .attr("result", "offsetBlur");
+    var feMerge = filter.append("feMerge");
+    feMerge.append("feMergeNode")
+        .attr("in", "offsetBlur")
+    feMerge.append("feMergeNode")
+        .attr("in", "SourceGraphic");
 
+    user_avi_svg.append("rect")
+        .attr("height", "800")
+        .attr("width", "305")
+        .attr("fill", "white")
+        .style("filter", "url(#drop-shadow)")
+        .attr("transform", "translate(5,5)");
     var avi_html = "/data/avatar.jpg?u=" + Date.now();
 
     // black drop shadow
-    
+
     user_avi_svg.append("svg:image")
         .attr("id", "user_avi")
-        .attr("xlink:href", avi_html)
+        .attr("href", avi_html)
         .attr("width", "256")
         .attr("height", "256")
         .attr("x", "5")
-        .attr("y", "5");
+        .attr("y", "5")
+        .style("rx", "3px")
+        .attr("transform", "translate(25,25)");;
 
+    var json_file = "/data/user_data.json?u=" + Date.now();
+    d3.json(json_file, function (data) {
+
+        d3.select('#user_svg')
+            .append("g")
+            .attr("id", "card_username_holder")
+            .attr("class", "card_username_holder")
+            .attr("transform", "translate(150," + 315 + ")")
+            .append("text")
+            .attr("text-anchor", "middle")
+            .attr("id", "card_username")
+            .attr("class", "card_username")
+            .style("font-family", "Garamond")
+            .style("font-size", "25px")
+            .style("text-shadow", "1px 1px grey")
+            .text("username ")
+
+        d3.select('#user_svg')
+            .append("a")
+            .attr("xlink:href", data.url)
+            .attr("target", "_blank")
+            .attr("transform", "translate(150,335)")
+            .append("text")
+            .attr("text-anchor", "middle")
+            .attr("id", "card_username_id")
+            .attr("class", "card_username_id")
+            .style("font-family", "Garamond")
+            .style("font-size", "22px")
+            .style("fill", "grey")
+            .text(data.username)
+
+        d3.select('#user_svg')
+            .append("g")
+            .attr("id", "followers_card")
+            .attr("class", "followers")
+            .attr("transform", "translate(55," + 355 + ")")
+            .append("rect")
+            //.style("filter", "url(#drop-shadow)")
+            .attr("height", "50")
+            .attr("width", "85")
+            .attr("rx", "5")
+            .attr("fill", "white")
+            .attr("stroke", "grey")
+            .attr("stroke-width", "2")
+
+        d3.select("#followers_card").append("text")
+            .attr("transform", "translate(10,20)")
+            .text("Followers")
+
+        d3.select("#followers_card").append("text")
+            .attr("transform", "translate(42,40)")
+            .attr("text-anchor", "middle")
+            .text(data.followers)
+
+        d3.select('#user_svg')
+            .append("g")
+            .attr("id", "following_card")
+            .attr("class", "following")
+            .attr("transform", "translate(165," + 355 + ")")
+            .append("rect")
+            //.style("filter", "url(#drop-shadow)")
+            .attr("height", "50")
+            .attr("width", "85")
+            .attr("rx", "5")
+            .attr("fill", "white")
+            .attr("stroke", "grey")
+            .attr("stroke-width", "2")
+
+        d3.select("#following_card").append("text")
+            .attr("transform", "translate(10,20)")
+            .text("Following")
+
+        d3.select("#following_card").append("text")
+            .attr("transform", "translate(42,40)")
+            .attr("text-anchor", "middle")
+            .text(data.following)
+
+        d3.select('#user_svg')
+            .append("g")
+            .attr("transform", "translate(150," + 440 + ")")
+            .append("text")
+            .attr("text-anchor", "middle")
+            .style("font-family", "Garamond")
+            .style("font-size", "25px")
+            //.style("text-shadow", "1px 1px grey")
+            .style("font-weight", "bold")
+            .text("Starred Repos")
+
+        d3.select("#user_svg")
+            .append("g")
+            .attr("transform", "translate(30," + 460 + ")")
+            .attr("class", "starred_repos")
+            .attr("id", "starred_repos")
+
+        var starred = data.starred
+        var y_offset = 30
+        max = (starred.length <= 10 ? starred.length : 10)
+        for (var i = 0; i < max; i++) {
+            var sec = d3.select('#starred_repos')
+                .append("g")
+                .attr("transform", "translate(0," + y_offset + ")")
+
+            var repo_name = sec.append("a")
+                .attr("href", starred[i].url)
+                .append("text")
+                .style("font-weight", "bold")
+                .text(starred[i].name + " - ")
+            var text_width = repo_name.node().getBBox().width
+
+            //245px max
+            sec.append("text")
+                .attr("id", "text_lol")
+                .text(starred[i].desc)
+                .attr("transform", "translate(" + (3 + text_width) + ",0)")
+                .append("title")
+                .text(starred[i].desc)
+
+            var total_width = sec.node().getBBox().width
+
+            if (total_width > 250) {
+                console.log(total_width)
+                var text_to_append = starred[i].desc
+                text_to_append = text_to_append.substring(0, text_to_append.length - 2)
+                while (total_width > 250) {
+                    sec.select("#text_lol").remove()
+                    text_to_append = text_to_append.substring(0, text_to_append.length - 1)
+                    sec.append("text")
+                        .attr("id", "text_lol")
+                        .text(text_to_append)
+                        .attr("transform", "translate(" + (3 + text_width) + ",0)")
+                        .append("title")
+                        .text(starred[i].desc)
+
+                    total_width = sec.node().getBBox().width
+                }
+                if(total_width = 250){
+                    sec.select("#text_lol").remove()
+                    text_to_append = text_to_append.substring(0, text_to_append.length - 3)
+                    text_to_append += "..."
+                    sec.append("text")
+                        .attr("id", "text_lol")
+                        .text(text_to_append)
+                        .attr("transform", "translate(" + (3 + text_width) + ",0)")
+                        .append("title")
+                        .text(starred[i].desc)
+
+                }
+            }
+            y_offset += 30
+        }
+    });
 }
+
+
+
+
+
 
 /* --  Render github activity line graph  -- */
 
 function render_commits_line_graph() {
 
+    var parseDate = d3.timeFormat("%Y-%m-%d").parse,
+        bisectDate = d3.bisector(function (d) { return d.date; }).left,
+        yFormat = d3.format(",.0f"),
+        formatValue = d3.format(","),
+        dateFormatter = d3.timeFormat("%Y-%m-%d");
+
+
+    var json_file = "/data/user_events.json?u=" + Date.now();
+    d3.json(json_file, function (data) {
+        var margin = { top: 30, right: 132, bottom: 30, left: 50 },
+            width = 800 - margin.left - margin.right,
+            height = 350 - margin.top - margin.bottom;
+
+        if (data.length == 0) {
+            var svg = d3.select("#user_data").append("div")
+                .style("position", "absolute")
+                .style("width", width)
+                .style("height", height)
+                .append("h3")
+                .attr("id", "no-data")
+                .text("No data for last 90 days.");
+            return;
+        }
+
+
+        d3.select("#user_data").append("section").attr("id", "line_graph_section").attr("class", "line_graph_section")
+            .style("position", "relative")
+            .attr("transform", "translate(305,0)")
+            //.style("left", "320px")
+            //.attr("float","right")
+            .style("width", "800px")
+            .style("height", "320px")
+            .append("svg")
+            .style("position", "absolute")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .attr("class", "line_chart")
+            .attr("transform", "translate(5,0)")
+            .attr("id", "line_chart");
+        var tooltip = d3.select("#line_graph_section").append("div")
+            .attr("class", "tooltip")
+            .style("display", "none");
+
+        var svg = d3.select("#line_chart").append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+
+
+
+        data.forEach(function (d) {
+            d.date = d3.timeParse("%Y-%m-%d")(d.date);
+            d.commits = +d.commits;
+        });
+
+        data.sort(function (a, b) {
+            return a.date - b.date;
+        });
+
+        console.log(data);
+
+        var x = d3.scaleTime()
+            .range([0, width]);
+
+        var y = d3.scaleLinear()
+            .range([height, 0]);
+
+
+        var x = d3.scaleTime().domain(d3.extent(data, function (d) { return d.date; })).range([0, width]);
+        var y = d3.scaleLinear().domain([0, d3.max(data, function (d) { return d.commits; })]).range([height, 0]);
+
+        var line = d3.line()
+            .x(function (d) { return x(d.date); })
+            .y(function (d) { return y(d.commits); });
+
+        svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x));
+
+        svg.append("g")
+            .attr("class", "y axis")
+            .call(d3.axisLeft(y).tickFormat(yFormat))
+            .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text("Number of Commits");
+
+        svg.append("path")
+            .datum(data)
+            .attr("class", "commits_line")
+            .attr("d", line);
+
+        var focus = svg.append("g")
+            .attr("class", "focus")
+            .style("display", "none");
+
+        focus.append("circle")
+            .attr("r", 5);
+
+        var tooltipDate = tooltip.append("div")
+            .attr("class", "tooltip-date");
+
+        var tooltipCommits = tooltip.append("div");
+        tooltipCommits.append("span")
+            .attr("class", "tooltip-title")
+            .text("Commits: ");
+
+        var tooltipCommitsValue = tooltipCommits.append("span")
+            .attr("class", "tooltip-commits");
+
+        svg.append("rect")
+            .attr("class", "overlay")
+            .attr("width", width)
+            .attr("height", height)
+            .on("mouseover", function () { focus.style("display", null); tooltip.style("display", null); })
+            .on("mouseout", function () { focus.style("display", "none"); tooltip.style("display", "none"); })
+            .on("mousemove", mousemove);
+
+        function mousemove() {
+            var x0 = x.invert(d3.mouse(this)[0]),
+                i = bisectDate(data, x0, 1),
+                d0 = data[i - 1],
+                d1 = data[i],
+                d = x0 - d0.date > d1.date - x0 ? d1 : d0;
+            focus.attr("transform", "translate(" + x(d.date) + "," + y(d.commits) + ")");
+            tooltip.attr("style", "left:" + (x(d.date) + 394) + "px;top:" + y(d.commits) + "px;");
+            tooltip.select(".tooltip-date").text(dateFormatter(d.date));
+            tooltip.select(".tooltip-commits").text(formatValue(d.commits));
+        }
+    });
 }

@@ -25,7 +25,7 @@
             src: url("static/font/Garamond.ttf") format("truetype");
         }
 
-        .page_title{
+        .page_title {
             font-family: "Garamond";
             font-size: 44px;
             text-align: center;
@@ -36,8 +36,12 @@
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+            text-align: center;
+
         }
-        .readme_title{
+
+
+        .readme_title {
             font-family: "Garamond";
             font-size: 30px;
             text-align: left;
@@ -62,17 +66,45 @@
             user-select: none;
         }
 
+        .commits_line {
+            fill: none;
+            stroke: grey;
+            stroke-width: 1.5px;
+        }
+
+        .overlay {
+            fill: none;
+            pointer-events: all;
+        }
+
+        .focus circle {
+            fill: grey;
+        }
+
         .tooltip {
-            color: #333;
-            display: none;
-            font-size: 14px;
-            font-family: 'Mukta', serif;
-            left: 130px;
-            padding: 10px;
+            width: 94px;
+            padding: 4px 10px;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             position: absolute;
-            text-align: center;
-            top: 95px;
-            z-index: 10;
+            background-color: white;
+            font-size: 14px;
+            pointer-events: none;
+            -webkit-transition: all 0.25s;
+            -moz-transition: all 0.25s;
+            -ms-transition: all 0.25s;
+            -o-transition: all 0.25s;
+            transition: all 0.25s;
+        }
+
+        .tooltip div {
+            margin: 3px 0;
+        }
+
+        .tooltip-date,
+        .tooltip-commits {
+            font-weight: bold;
         }
 
         button {
@@ -174,19 +206,49 @@
             margin-right: 10%;
             margin-top: 20px;
         }
+
+
+        .line_chart .domain {
+            display: none;
+        }
+
+        .line_chart line {
+            display: none;
+        }
+
+        @namespace svg url(http://www.w3.org/2000/svg);
+        /* Necessary to select only SVG <a> elements, and not also HTML’s.
+   See warning below */
+
+        svg|a:link,
+        svg|a:visited {
+            cursor: pointer;
+        }
+
+        svg|a text,
+        text svg|a {
+            fill: blue;
+            /* Even for text, SVG uses fill over color */
+            text-decoration: underline;
+        }
+
+        svg|a:hover,
+        svg|a:active {
+            outline: dotted 1px blue;
+        }
     </style>
 </head>
 
 
 
-<body>
-    <h1 class="page_title">
-        Github Visualiser
+<body onload="typeWriter()">
+    <h1 class="page_title" id="page_title" display="inline-block">
+
     </h1>
     <section class="repo_query">
         <div class="submit_form">
             <input type="text" name="name_and_repo" id="usrin">
-            <button onclick="renderData()" )>Submit</button>
+            <button onclick="renderData()" >Submit</button>
         </div>
         <div style="width:33%;float:right;">
             <h class="example" style="padding-left: 5px; float:left;">e.g. "esjmb" or "esjmb/github-get"</h>
@@ -202,5 +264,19 @@
             </div>
     </section>
 </body>
+<script>
+    var i = 0;
+    var txt = 'Github Visualiser'; /* The text */
+    var speed = 100; /* The speed/duration of the effect in milliseconds */
+
+    function typeWriter() {
+        if (i < txt.length) {
+            document.getElementById("page_title").innerHTML += txt.charAt(i);
+            i++;
+            setTimeout(typeWriter, speed);
+        }
+    }
+
+</script>
 
 </html>
