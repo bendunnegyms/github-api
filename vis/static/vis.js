@@ -65,7 +65,7 @@ function clearElements() {
         .attr("class","example")
         .attr("style","{padding-left: 5px; float:left;}")
         .style("color", "black")
-        .text("e.g. \"esjmb\" or \"esjmb/github-get\"")
+        .text("e.g. \"torvalds\" or \"esjmb/github-get\"")
     
     
     
