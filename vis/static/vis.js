@@ -28,32 +28,40 @@ function renderData() {
         }),
         body: JSON.stringify(entry)
     }).then(function (response) {
-        console.log(response.status);
-        removeLoading();
-        if (entry["status"] == "name_and_repo") {
-            d3.select("#data_display").style("display", "block")
-            renderDAG();
-            renderBarChart();
-            pie_chart();
-            render_readme();
-        } else {
-            d3.select("#data_display").style("display", "none")
-            d3.select("body")
-                .append("section")
-                .attr("id", "user_data")
-                .attr("position", "absolute")
-                .style("margin", "auto")
-                .style("width", "1000px")
-                .style("height", "800px")
-                .attr("overflow", "auto")
-                .style("padding-top", "40px");
-            renderUserData();
-            render_commits_line_graph();
+
+        if (response.status == 404) {
+            error_handler();
+            removeLoading();
+        }
+        else {
+            removeLoading();
+            if (entry["status"] == "name_and_repo") {
+                d3.select("#data_display").style("display", "block")
+                renderDAG();
+                renderBarChart();
+                pie_chart();
+                render_readme();
+            } else {
+                d3.select("#data_display").style("display", "none")
+                d3.select("body")
+                    .append("section")
+                    .attr("id", "user_data")
+                    .attr("position", "absolute")
+                    .style("margin", "auto")
+                    .style("width", "1000px")
+                    .style("height", "800px")
+                    .attr("overflow", "auto")
+                    .style("padding-top", "40px");
+                renderUserData();
+                renderUserDataPieChart();
+                render_commits_line_graph();
+            }
         }
     });
 }
 
 function clearElements() {
+    d3.select("#example").text("e.g. \"esjmb\" or \"esjmb/github-get\"").style("color", "black")
     d3.select("#git_commits_dag").selectAll("*").remove();
     d3.select("#git_commits_bar_chart").selectAll("*").remove();
     d3.select("#pie_chart").selectAll("*").remove();
@@ -62,6 +70,11 @@ function clearElements() {
     d3.select("body").selectAll("#user_data").remove();
 }
 
+function error_handler(){
+    d3.select("#example").text("User or repository not found.").style("color", "red")
+    d3.select("body").select("button")
+        .attr("disabled", null)
+}
 
 function removeLoading() {
     d3.select("body").select("#loading_gif").remove();
@@ -75,6 +88,7 @@ function addLoading() {
 
     d3.select("body").append("div")
         .style("margin-left", "35%")
+        .style("margin-top", "100px")
         .attr("id", "loading_gif")
         .attr("class", "loading_gif")
         .append("img")
@@ -737,7 +751,7 @@ function renderUserData() {
 
                     total_width = sec.node().getBBox().width
                 }
-                if(total_width = 250){
+                if (total_width = 250) {
                     sec.select("#text_lol").remove()
                     text_to_append = text_to_append.substring(0, text_to_append.length - 3)
                     text_to_append += "..."
@@ -775,7 +789,7 @@ function render_commits_line_graph() {
     d3.json(json_file, function (data) {
         var margin = { top: 30, right: 132, bottom: 30, left: 50 },
             width = 800 - margin.left - margin.right,
-            height = 350 - margin.top - margin.bottom;
+            height = 320
 
         if (data.length == 0) {
             var svg = d3.select("#user_data").append("div")
@@ -795,7 +809,7 @@ function render_commits_line_graph() {
             //.style("left", "320px")
             //.attr("float","right")
             .style("width", "800px")
-            .style("height", "320px")
+            .style("height", "380px")
             .append("svg")
             .style("position", "absolute")
             .attr("width", width + margin.left + margin.right)
@@ -846,10 +860,12 @@ function render_commits_line_graph() {
 
         svg.append("g")
             .attr("class", "y axis")
+            .attr("id", "y_axis")
             .call(d3.axisLeft(y).tickFormat(yFormat))
-            .append("text")
+
+        svg.select("#y_axis").append("g").append("text")
             .attr("transform", "rotate(-90)")
-            .attr("y", 6)
+            .attr("y", 10)
             .attr("dy", ".71em")
             .style("text-anchor", "end")
             .text("Number of Commits");
@@ -896,5 +912,154 @@ function render_commits_line_graph() {
             tooltip.select(".tooltip-date").text(dateFormatter(d.date));
             tooltip.select(".tooltip-commits").text(formatValue(d.commits));
         }
+    });
+}
+
+
+
+
+
+
+
+
+function renderUserDataPieChart() {
+    var time = Date.now();
+    var json_file = "/data/fav_langs.json?u=" + time;
+    d3.json(json_file, function (data) {
+
+        var legendSpacing = 7; // defines spacing between squares
+        var legend_radius = 4;
+
+        // legend dimensions
+        var width = 500
+        height = 560
+        margin = 20
+
+        // The radius of the pieplot is half the width or half the height (smallest one). I subtract a bit of margin.
+        // var radius = 80
+        var radius = 170;
+
+
+        var svg = d3.select("#user_data")
+            .append("section")
+            .attr("position", "relative")
+            .attr("id", "user_data_pie_chart")
+            .attr("class", "user_data_pie_chart")
+            .attr("width", "800px")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("transform", "translate(" + 230 + "," + 250 + ")");
+
+        d3.select("#user_data_pie_chart").select("svg")
+            .append("g")
+            .attr("transform", "translate(" + 20 + "," + 80 + ")")
+            .append("text").text("Repo Language Breakdown")
+            ///.style("font-size", "15px")
+            .style("font-weight", "bold")
+
+        // set the color scale
+        var color = d3.scaleOrdinal()
+            .domain(Object.keys(data))
+            .range(d3.schemeDark2);
+
+        // Compute the position of each group on the pie:
+        var pie = d3.pie()
+            .padAngle(0.01)
+            .sort(null) // Do not sort group by size
+            .value(function (d) { return d.value; })
+        var data_ready = pie(d3.entries(data))
+
+        // The arc generator
+        var arc = d3.arc()
+            .cornerRadius(2)
+            .innerRadius(radius * 0)         // This is the size of the donut hole
+            .outerRadius(radius * 0.8)
+
+        // Another arc that won't be drawn. Just for labels positioning
+        var outerArc = d3.arc()
+            .innerRadius(radius * 0.9)
+            .outerRadius(radius * 0.9)
+
+
+
+        var defs = svg.append("defs");
+        // black drop shadow
+        var filter = defs.append("filter")
+            .attr("id", "drop-shadow")
+        filter.append("feGaussianBlur")
+            .attr("in", "SourceAlpha")
+            .attr("stdDeviation", 1)
+            .attr("result", "blur");
+        filter.append("feOffset")
+            .attr("in", "blur")
+            .attr("dx", 1)
+            .attr("dy", 1)
+            .attr("result", "offsetBlur");
+        var feMerge = filter.append("feMerge");
+        feMerge.append("feMergeNode")
+            .attr("in", "offsetBlur")
+        feMerge.append("feMergeNode")
+            .attr("in", "SourceGraphic");
+
+
+        // Build the pie chart: Basically, each part of the pie is a path that we build using the arc function.
+        svg
+            .selectAll('allSlices')
+            .data(data_ready)
+            .enter()
+            .append('path')
+            .attr('d', arc)
+            .attr('fill', function (d) { return (color(d.data.key)) })
+            //.attr("stroke", "#fffff5")
+            //.style("stroke-width", "1px")
+            .style("opacity", 0.8)
+            .style("transition", "fill-opacity .4s ease")
+            .on("mouseover", function (d) {
+                d3.select(this)
+                    .attr("fill-opacity", ".8")
+                    .style("filter", "url(#drop-shadow)");
+                //tooltip.select('.label').html(d.data.key);
+                //tooltip.style('display', 'block');
+            })
+            .on("mouseout", function (d) {
+                d3.select(this)
+                    .attr("fill-opacity", "1")
+                    .style("filter", "none");
+                //tooltip.style('display', 'none');
+            })
+            .append("title")
+            .text(function (d) { return d.data.key; });
+
+
+        // define legend
+        var legend = svg.selectAll('.legend') // selecting elements with class 'legend'
+            .data(color.domain()) // refers to an array of labels from our dataset
+            .enter() // creates placeholder
+            .append('g') // replace placeholders with g elements
+            .attr('class', 'legend') // each g is given a legend class
+            .attr('transform', function (d, i) {
+                var height = 15 + legendSpacing; // height of element is the height of the colored square plus the spacing      
+                var offset = height * color.domain().length / 2; // vertical offset of the entire legend = height of a single element & half the total number of elements  
+                var vert = i * height - offset; // the top of the element is hifted up or down from the center using the offset defiend earlier and the index of the current element 'i'               
+                return 'translate(' + radius + ',' + vert + ')'; //return translation       
+            });
+
+        // adding colored squares to legend
+        legend.append('circle') // append rectangle squares to legend                                   
+            .attr("r", legend_radius)
+            .style('fill', color) // each fill is passed a color
+            .style('stroke', color) // each stroke is passed a color
+
+
+        // adding text to legend
+        legend.append('text')
+            .attr('x', legend_radius + legendSpacing)
+            .attr('y', 1 + (legend_radius / 2))
+            .attr("font-size", "15px")
+            .data(data_ready)
+            .text(function (d) { return d.data.key + " - " + d.data.value + ""; }); // return label
+
     });
 }

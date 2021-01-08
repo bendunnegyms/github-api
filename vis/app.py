@@ -21,6 +21,10 @@ def data(filename):
 @app.route('/func/', methods=['POST'])
 def form_post():
 
+    if(query.test_query(request.get_json()) == 404):
+        print("User or repository doesn't exist")
+        return("",404)
+
     if (query.rate_limit_test()) < 0:
         print("Rate limited")
         return("", 403)
@@ -28,4 +32,6 @@ def form_post():
     query.loads_data(request.get_json())
 
     return ('', 204)
-    
+
+if __name__ == "__main__": 
+        app.run() 

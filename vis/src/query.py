@@ -217,6 +217,19 @@ def get_user_avatar(username):
 
 def get_user_data(username):
     user_data = {}
+    r_repos = query(username)
+    fav_langs = {}
+
+    for entry in json.loads(r_repos.text):
+        lang = entry["language"]
+        if lang == "null":
+            continue
+        if lang not in fav_langs:
+            fav_langs[lang] = 1
+        else:
+            fav_langs[lang] += 1
+
+    file_exist_check(fav_langs, "../vis/data/fav_langs.json")
     headers = {}
     url = 'https://api.github.com/users/' + username
     r_data = requests.get(url, headers=headers,  auth=(
@@ -274,7 +287,7 @@ def rate_limit_test():
     url = 'https://api.github.com/rate_limit'
     r = requests.get(url, headers=headers, auth=(
         'bendunnegyms', ''))
-    print(json.dumps(json.loads(r.text), indent=2))
+    # print(json.dumps(json.loads(r.text), indent=2))
     api_r = json.loads(r.text)
     out = api_r["resources"]["core"]["remaining"]
     return out
@@ -286,10 +299,35 @@ def test_token(usr, token):
     r = requests.get(url, headers=headers, auth=(
         usr, token))
 
+def test_query(request_data):
+    headers = {}
+    if request_data["status"] == "name_and_repo":
+        git_user = request_data["name"]
+        git_repo = request_data["repo"]
+
+        user_url = 'https://api.github.com/users/' + git_user
+        repo_url = 'https://api.github.com/users/' + git_user + "/repos/" + git_repo
+        
+        r_repo = requests.get(repo_url, headers=headers, auth=("bendunnegyms", ""))
+        r_user = requests.get(user_url, headers=headers, auth=("bendunnegyms", ""))
+        
+        if r_repo.status_code == 404 or r_user.status_code == 404:
+            return 404
+
+    elif request_data["status"] == "name_only":
+        git_user = request_data["name"]
+        user_url = 'https://api.github.com/users/' + git_user
+        r_user = requests.get(user_url, headers=headers, auth=("bendunnegyms", ""))
+        if r_user.status_code == 404:
+            return 404
+    
+    return 200
+
 
 if __name__ == "__main__":
-    rate_limit_test()
-    # get_user_data("esjmb")
+    print("nada")
+    # rate_limit_test()
+    # get_user_data("asdgadfvjyu")
     # get_user_activity("bendunnegyms")
     # get_user_avatar("OwenB523")
     # language_data("bendunnegyms", "SWENG-2")
