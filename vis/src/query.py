@@ -306,7 +306,7 @@ def test_query(request_data):
         git_repo = request_data["repo"]
 
         user_url = 'https://api.github.com/users/' + git_user
-        repo_url = 'https://api.github.com/users/' + git_user + "/repos/" + git_repo
+        repo_url = 'https://api.github.com/repos/'  + git_user + "/" + git_repo
         
         r_repo = requests.get(repo_url, headers=headers, auth=("bendunnegyms", ""))
         r_user = requests.get(user_url, headers=headers, auth=("bendunnegyms", ""))
@@ -320,12 +320,16 @@ def test_query(request_data):
         r_user = requests.get(user_url, headers=headers, auth=("bendunnegyms", ""))
         if r_user.status_code == 404:
             return 404
+    elif request_data["status"] == "err":
+        return 404
     
     return 200
 
 
 if __name__ == "__main__":
     print("nada")
+    input_r = {"name":"bendunnegyms","repo":"github-api","status":"name_and_repo"}
+    test_query(input_r)
     # rate_limit_test()
     # get_user_data("asdgadfvjyu")
     # get_user_activity("bendunnegyms")

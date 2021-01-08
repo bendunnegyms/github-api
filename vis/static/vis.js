@@ -7,8 +7,7 @@ function renderData() {
     input_test = user_input.split("/");
     console.log(user_input);
     if (user_input == "") {
-        alert("shits fucked bigtime");
-        return;
+        var entry = {"status":"err"};
     }
 
     if (input_test.length == 1) {
@@ -16,8 +15,7 @@ function renderData() {
     } else if (input_test.length == 2) {
         var entry = { "name": input_test[0], "repo": input_test[1], "status": "name_and_repo" };
     } else {
-        alert("shits fucked bigtime");
-        return;
+        var entry = {"status":"err"};
     }
 
     fetch("/func/", {
@@ -28,7 +26,7 @@ function renderData() {
         }),
         body: JSON.stringify(entry)
     }).then(function (response) {
-
+        console.log(response.status)
         if (response.status == 404) {
             error_handler();
             removeLoading();
@@ -61,7 +59,16 @@ function renderData() {
 }
 
 function clearElements() {
-    d3.select("#example").text("e.g. \"esjmb\" or \"esjmb/github-get\"").style("color", "black")
+    d3.select("#example").remove()
+    d3.select("#example_holder").append("h")
+        .attr("id","example")
+        .attr("class","example")
+        .attr("style","{padding-left: 5px; float:left;}")
+        .style("color", "black")
+        .text("e.g. \"esjmb\" or \"esjmb/github-get\"")
+    
+    
+    
     d3.select("#git_commits_dag").selectAll("*").remove();
     d3.select("#git_commits_bar_chart").selectAll("*").remove();
     d3.select("#pie_chart").selectAll("*").remove();
@@ -71,7 +78,15 @@ function clearElements() {
 }
 
 function error_handler(){
-    d3.select("#example").text("User or repository not found.").style("color", "red")
+    //d3.select("#example").text("User or repository not found.").style("color", "red")
+    d3.select("#example").remove()
+    d3.select("#example_holder").append("h")
+        .attr("id","example")
+        .attr("class","example")
+        .attr("style","{padding-left: 5px; float:left;}")
+        .style("color", "red")
+        .text("User or repository not found.")
+
     d3.select("body").select("button")
         .attr("disabled", null)
 }
