@@ -11,7 +11,7 @@ def query(username):
     headers = {}
     url = 'https://api.github.com/users/' + username + '/repos'
     r = requests.get(url, headers=headers,  auth=(
-        'bendunnegyms', ''))
+        'bendunnegyms', '5f21343658cf642ebb6bfe3ae023e9d8aad23c1e'))
     # print(json.dumps(json.loads(r.text), indent= 4))
     return r
 
@@ -37,7 +37,7 @@ def get_repo_commits(r):
         commits_url_t = "{url}{index}".format(url=commits_url, index=x+1)
         # print(commits_url_t)
         commits_r = requests.get(commits_url_t, headers={}, auth=(
-            'bendunnegyms', ''))
+            'bendunnegyms', '5f21343658cf642ebb6bfe3ae023e9d8aad23c1e'))
         # print(json.dumps(json.loads(commits_r.text), indent= 4))
         if len(json.loads(commits_r.text)) == 0:
             break
@@ -125,7 +125,7 @@ def get_readme(git_username, repo_name):
     url = "https://raw.githubusercontent.com/" + \
         git_username + "/" + repo_name + "/master/README.md"
     r = requests.get(url, headers=headers, auth=(
-        'bendunnegyms', ''))
+        'bendunnegyms', '5f21343658cf642ebb6bfe3ae023e9d8aad23c1e'))
 
     try:
         with open("../vis/data/readme.html", "w") as fp:
@@ -139,7 +139,7 @@ def language_data(username, repo):
     headers = {}
     url = 'https://api.github.com/repos/' + username + '/' + repo + '/languages'
     r = requests.get(url, headers=headers,  auth=(
-        'bendunnegyms', ''))
+        'bendunnegyms', '5f21343658cf642ebb6bfe3ae023e9d8aad23c1e'))
     #    print(json.dumps(json.loads(r.text), indent= 4))
 
     lang_dict = json.loads(r.text)
@@ -172,7 +172,7 @@ def get_user_activity(username):
     dummy_url = ''
     for x in range(5):
         dummy_url = "{url}{index}".format(url=url, index=x+1)
-        r = requests.get(dummy_url, headers=headers, auth=('bendunnegyms', ''))
+        r = requests.get(dummy_url, headers=headers, auth=('bendunnegyms', '5f21343658cf642ebb6bfe3ae023e9d8aad23c1e'))
         if len(json.loads(r.text)) == 0:
             break
         for entry in json.loads(r.text):
@@ -233,11 +233,11 @@ def get_user_data(username):
     headers = {}
     url = 'https://api.github.com/users/' + username
     r_data = requests.get(url, headers=headers,  auth=(
-        'bendunnegyms', ''))
+        'bendunnegyms', '5f21343658cf642ebb6bfe3ae023e9d8aad23c1e'))
     r_data = json.loads(r_data.text)
     url = 'https://api.github.com/users/' + username + "/starred"
     r_starred = json.loads((requests.get(url, headers=headers,  auth=(
-        'bendunnegyms', ''))).text)
+        'bendunnegyms', '5f21343658cf642ebb6bfe3ae023e9d8aad23c1e'))).text)
     
     print(json.dumps(r_starred, indent=2))
     user_data["username"] = username
@@ -286,7 +286,7 @@ def rate_limit_test():
     headers = {}
     url = 'https://api.github.com/rate_limit'
     r = requests.get(url, headers=headers, auth=(
-        'bendunnegyms', ''))
+        'bendunnegyms', '5f21343658cf642ebb6bfe3ae023e9d8aad23c1e'))
     # print(json.dumps(json.loads(r.text), indent=2))
     api_r = json.loads(r.text)
     out = api_r["resources"]["core"]["remaining"]
@@ -308,8 +308,8 @@ def test_query(request_data):
         user_url = 'https://api.github.com/users/' + git_user
         repo_url = 'https://api.github.com/repos/'  + git_user + "/" + git_repo
         
-        r_repo = requests.get(repo_url, headers=headers, auth=("bendunnegyms", ""))
-        r_user = requests.get(user_url, headers=headers, auth=("bendunnegyms", ""))
+        r_repo = requests.get(repo_url, headers=headers, auth=("bendunnegyms", "5f21343658cf642ebb6bfe3ae023e9d8aad23c1e"))
+        r_user = requests.get(user_url, headers=headers, auth=("bendunnegyms", "5f21343658cf642ebb6bfe3ae023e9d8aad23c1e"))
         
         if r_repo.status_code == 404 or r_user.status_code == 404:
             return 404
@@ -317,7 +317,7 @@ def test_query(request_data):
     elif request_data["status"] == "name_only":
         git_user = request_data["name"]
         user_url = 'https://api.github.com/users/' + git_user
-        r_user = requests.get(user_url, headers=headers, auth=("bendunnegyms", ""))
+        r_user = requests.get(user_url, headers=headers, auth=("bendunnegyms", "5f21343658cf642ebb6bfe3ae023e9d8aad23c1e"))
         if r_user.status_code == 404:
             return 404
     elif request_data["status"] == "err":
